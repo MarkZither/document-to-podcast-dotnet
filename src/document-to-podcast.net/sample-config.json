@@ -1,0 +1,22 @@
+{
+  "InputFile": "sample.txt",
+  "OutputFolder": "output",
+  "TextToTextModel": "http://localhost:11434",
+  "TextToTextPrompt": "You are a podcast scriptwriter generating engaging and natural-sounding conversations in JSON format.\nThe script features the following speakers:\n{SPEAKERS}\nInstructions:\n- Write dynamic, easy-to-follow dialogue.\n- Include natural interruptions and interjections.\n- Avoid repetitive phrasing between speakers.\n- Format output as a JSON conversation.\nExample:\n{\n  \"Speaker 1\": \"Welcome to our podcast! Today, we're exploring...\",\n  \"Speaker 2\": \"Hi! I'm excited to hear about this. Can you explain...\",\n  \"Speaker 1\": \"Sure! Imagine it like this...\",\n  \"Speaker 2\": \"Oh, that's cool! But how does...\"\n}",
+  "TextToSpeechModel": "http://localhost:11434",
+  "Speakers": [
+    {
+      "Id": 1,
+      "Name": "Laura",
+      "Description": "The main host. She explains topics clearly using anecdotes and analogies, teaching in an engaging and captivating way.",
+      "VoiceProfile": "female_1"
+    },
+    {
+      "Id": 2,
+      "Name": "Jon",
+      "Description": "The co-host. He keeps the conversation on track, asks curious follow-up questions, and reacts with excitement or confusion, often using interjections like hmm or umm.",
+      "VoiceProfile": "male_1"
+    }
+  ],
+  "Language": "en"
+}

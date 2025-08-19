@@ -1,0 +1,29 @@
+{
+    // Use IntelliSense to learn about possible attributes.
+    // Hover to view descriptions of existing attributes.
+    // For more information, visit: https://go.microsoft.com/fwlink/?linkid=830387
+    "version": "0.2.0",
+    "configurations": [
+            {
+      "name": ".NET 9 Console App",
+      "type": "coreclr",
+      "request": "launch",
+      "preLaunchTask": "dotnet: build",
+      "program": "${workspaceFolder}/src/document-to-podcast.net/bin/Debug/net9.0/document-to-podcast.net.dll",
+      "args": ["--", "--input-file", "c:\\Users\\markb\\Downloads\\CyberSecurityTraining-1-PageBusinessCase-1729084331110.pdf", "arg3"],
+      "cwd": "${workspaceFolder}/src/document-to-podcast.net/bin/Debug/net9.0",
+      "console": "internalConsole",
+      "stopAtEntry": false
+    },{
+      "name": ".NET 9 Nobuild Console App",
+      "type": "coreclr",
+      "request": "launch",
+      "program": "${workspaceFolder}/src/document-to-podcast.net/bin/Debug/net9.0/document-to-podcast.net.dll",
+      "args": ["--", "--input-file", "c:\\Users\\markb\\Downloads\\CyberSecurityTraining-1-PageBusinessCase-1729084331110.pdf", "arg3"],
+      "cwd": "${workspaceFolder}/src/document-to-podcast.net/bin/Debug/net9.0",
+      "console": "internalConsole",
+      "stopAtEntry": false
+    }
+
+    ]
+}

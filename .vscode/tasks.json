@@ -1,0 +1,28 @@
+{
+	"version": "2.0.0",
+	"tasks": [
+		{
+			"type": "dotnet",
+			"task": "build",
+			"group": "build",
+			"problemMatcher": "$msCompile",
+			"label": "dotnet: build"
+		},
+		{
+			"type": "dotnet",
+			"task": "build c:\\Source\\github\\document-to-podcast-dotnet\\src\\document-to-podcast-net\\document-to-podcast-net.csproj",
+			"file": "c:\\Source\\github\\document-to-podcast-dotnet\\src\\document-to-podcast-net\\document-to-podcast-net.csproj",
+			"group": "build",
+			"problemMatcher": [],
+			"label": "dotnet: build c:\\Source\\github\\document-to-podcast-dotnet\\src\\document-to-podcast-net\\document-to-podcast-net.csproj"
+		},
+		{
+			"type": "dotnet",
+			"task": "build c:\\Source\\github\\document-to-podcast-dotnet\\src\\document-to-podcast.net\\document-to-podcast.net.csproj",
+			"file": "c:\\Source\\github\\document-to-podcast-dotnet\\src\\document-to-podcast.net\\document-to-podcast.net.csproj",
+			"group": "build",
+			"problemMatcher": [],
+			"label": "dotnet: build c:\\Source\\github\\document-to-podcast-dotnet\\src\\document-to-podcast.net\\document-to-podcast.net.csproj"
+		}
+	]
+}
