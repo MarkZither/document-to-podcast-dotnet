@@ -8,6 +8,7 @@ using Microsoft.Extensions.Options;
 using Microsoft.SemanticKernel;
 using Microsoft.SemanticKernel.ChatCompletion;
 using Serilog;
+using MarkItDownSharp;
 
 namespace DocumentToPodcast;
 
@@ -154,7 +155,7 @@ public class Program
                 if (options.UseSemanticKernel)
                 {
                     var kernelBuilder = services.AddKernel();
-                    
+
                     if (options.SemanticKernel.UseOpenAI && !string.IsNullOrEmpty(options.OpenAI.ApiKey))
                     {
                         kernelBuilder.AddOpenAIChatCompletion(
@@ -168,13 +169,13 @@ public class Program
                         {
                             var httpClientFactory = provider.GetRequiredService<IHttpClientFactory>();
                             var httpClient = httpClientFactory.CreateClient();
-                            
+
                             // Set extended timeout for AI inference
-                            httpClient.Timeout = TimeSpan.FromMinutes(10);
-                            
+                            httpClient.Timeout = TimeSpan.FromMinutes(30);
+
                             var logger = provider.GetRequiredService<ILogger<OllamaChatCompletionService>>();
                             logger.LogInformation("Configured HttpClient timeout to 10 minutes for AI inference");
-                            
+
                             return new OllamaChatCompletionService(
                                 httpClient,
                                 logger,
@@ -184,6 +185,9 @@ public class Program
                     }
 
                     services.AddScoped<ITextToTextService, SemanticKernelTextToTextService>();
+
+                    // Add MarkItDown to parse the documents
+                    services.AddMarkItDown();
                 }
                 else
                 {

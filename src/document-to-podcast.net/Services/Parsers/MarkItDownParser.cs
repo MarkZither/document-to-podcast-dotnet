@@ -1,5 +1,9 @@
 using System.Diagnostics;
 using Microsoft.Extensions.Logging;
+using MarkItDownSharp.Converters;
+using MarkItDownSharp.Models;
+using MarkItDownSharp;
+using MarkItDownSharp.Services;
 
 namespace DocumentToPodcast.Services.Parsers;
 
@@ -10,6 +14,7 @@ namespace DocumentToPodcast.Services.Parsers;
 public class MarkItDownParser : IDocumentParser
 {
     private readonly ILogger<MarkItDownParser> _logger;
+    private readonly MarkItDownConverter _converter;
     private readonly HttpClient _httpClient;
 
     public string[] SupportedExtensions => new[] { ".pdf", ".docx", ".html", ".md" };
@@ -19,32 +24,22 @@ public class MarkItDownParser : IDocumentParser
         _httpClient = new HttpClient();
         var loggerFactory = LoggerFactory.Create(builder => builder.AddConsole());
         _logger = loggerFactory.CreateLogger<MarkItDownParser>();
+        var pdfConverter = new PdfConverter(new NoOpOcrService());
+        IEnumerable<DocumentConverter> converters = new List<DocumentConverter>();
+        converters = converters.Append(pdfConverter);
+        _converter =  new MarkItDownConverter(converters);
     }
 
-    public MarkItDownParser(ILogger<MarkItDownParser> logger, HttpClient httpClient)
+    public MarkItDownParser(ILogger<MarkItDownParser> logger, HttpClient httpClient, MarkItDownConverter converter)
     {
         _logger = logger;
         _httpClient = httpClient;
+        _converter = converter;
     }
 
     public async Task<string> ParseAsync(string filePath)
     {
-        // For now, just read the file as text for testing
-        // TODO: Implement proper MarkItDown integration
-        
-        _logger.LogInformation("Parsing document: {FilePath}", filePath);
-        
-        try
-        {
-            var content = await File.ReadAllTextAsync(filePath);
-            _logger.LogDebug("Successfully read {Length} characters from file", content.Length);
-            return content;
-        }
-        catch (Exception ex)
-        {
-            _logger.LogError(ex, "Failed to read file: {FilePath}", filePath);
-            throw;
-        }
+        return await ParseWithMarkItDownNet(filePath);
     }
 
     public async Task<string> ParseAsync(Stream stream)
@@ -70,94 +65,18 @@ public class MarkItDownParser : IDocumentParser
 
     private async Task<string> ParseWithMarkItDownNet(string filePath)
     {
-        // Placeholder for future MarkItDown.NET implementation
-        // This would use a native .NET implementation of MarkItDown
-        throw new NotImplementedException("MarkItDown.NET implementation not yet available");
-    }
-
-    private async Task<string> ParseWithPythonService(string filePath)
-    {
-        // Try to call a Python MarkItDown service running as HTTP API
-        // This assumes you have a service running on localhost:8000/parse
-        var serviceUrl = Environment.GetEnvironmentVariable("MARKITDOWN_SERVICE_URL") ?? "http://localhost:8000";
-        
-        using var form = new MultipartFormDataContent();
-        using var fileContent = new StreamContent(File.OpenRead(filePath));
-        fileContent.Headers.ContentType = new System.Net.Http.Headers.MediaTypeHeaderValue("application/octet-stream");
-        form.Add(fileContent, "file", Path.GetFileName(filePath));
-
-        var response = await _httpClient.PostAsync($"{serviceUrl}/parse", form);
-        response.EnsureSuccessStatusCode();
-        
-        return await response.Content.ReadAsStringAsync();
-    }
-
-    private async Task<string> ParseWithLocalPython(string filePath)
-    {
-        var tempOutputFile = Path.GetTempFileName();
-        try
+        // Set up conversion options.
+        var options = new ConversionOptions
         {
-            var pythonScript = $"""
-                import sys
-                from markitdown import MarkItDown
-                
-                md = MarkItDown()
-                result = md.convert(r"{filePath}")
-                
-                with open(r"{tempOutputFile}", "w", encoding="utf-8") as f:
-                    f.write(result.text_content)
-                """;
-
-            var tempScriptFile = Path.GetTempFileName() + ".py";
-            await File.WriteAllTextAsync(tempScriptFile, pythonScript);
-
-            try
-            {
-                var process = new Process
-                {
-                    StartInfo = new ProcessStartInfo
-                    {
-                        FileName = "python",
-                        Arguments = tempScriptFile,
-                        UseShellExecute = false,
-                        RedirectStandardOutput = true,
-                        RedirectStandardError = true,
-                        CreateNoWindow = true
-                    }
-                };
-
-                process.Start();
-                var error = await process.StandardError.ReadToEndAsync();
-                await process.WaitForExitAsync();
-
-                if (process.ExitCode != 0)
-                {
-                    throw new InvalidOperationException($"Python MarkItDown failed: {error}");
-                }
-
-                if (File.Exists(tempOutputFile))
-                {
-                    return await File.ReadAllTextAsync(tempOutputFile);
-                }
-                else
-                {
-                    throw new InvalidOperationException("MarkItDown did not produce output file");
-                }
-            }
-            finally
-            {
-                if (File.Exists(tempScriptFile))
-                {
-                    File.Delete(tempScriptFile);
-                }
-            }
-        }
-        finally
+        };
+        if (File.Exists(filePath))
         {
-            if (File.Exists(tempOutputFile))
-            {
-                File.Delete(tempOutputFile);
-            }
+            var docConvertorResult = await _converter.ConvertLocalAsync(filePath, options);
+            return docConvertorResult.TextContent;
         }
+
+        // Assume it's a URL
+        var docConvertorResultUrl = await _converter.ConvertLocalAsync(filePath, options);
+            return docConvertorResultUrl.TextContent;
     }
 }
