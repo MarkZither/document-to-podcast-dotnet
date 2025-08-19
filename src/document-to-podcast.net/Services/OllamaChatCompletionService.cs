@@ -90,17 +90,17 @@ public class OllamaChatCompletionService : IChatCompletionService
 
             var ollamaResponse = JsonSerializer.Deserialize<OllamaChatResponse>(responseContent);
             
-            if (ollamaResponse?.Message?.Content == null)
+            if (ollamaResponse?.Choices?.FirstOrDefault()?.Message?.Content == null)
             {
                 _logger.LogWarning("Ollama returned null or empty response");
                 throw new InvalidOperationException("Ollama did not return a valid response");
             }
 
-            _logger.LogInformation("Received response with {Length} characters", ollamaResponse.Message.Content.Length);
+            _logger.LogInformation("Received response with {Length} characters", ollamaResponse?.Choices?.FirstOrDefault()?.Message.Content.Length);
 
             var chatMessage = new ChatMessageContent(
                 AuthorRole.Assistant,
-                ollamaResponse.Message.Content
+                ollamaResponse?.Choices?.FirstOrDefault()?.Message.Content
             );
 
             return new List<ChatMessageContent> { chatMessage };
@@ -172,15 +172,15 @@ public class OllamaChatCompletionService : IChatCompletionService
                 continue;
             }
 
-            if (streamResponse?.Message?.Content != null)
+            if (streamResponse?.Choices?.FirstOrDefault()?.Message?.Content != null)
             {
                 yield return new StreamingChatMessageContent(
                     AuthorRole.Assistant,
-                    streamResponse.Message.Content
+                    streamResponse?.Choices?.FirstOrDefault()?.Message?.Content
                 );
             }
 
-            if (streamResponse?.Done == true)
+            if (streamResponse?.Choices?.FirstOrDefault()?.FinishReason == "Stop")
             {
                 break;
             }
@@ -189,43 +189,96 @@ public class OllamaChatCompletionService : IChatCompletionService
 
     private class OllamaChatResponse
     {
+        [JsonPropertyName("id")]
+        public required string Id { get; set; }
+
+        [JsonPropertyName("object")]
+        public required string Object { get; set; }
+
+        [JsonPropertyName("created")]
+        public long Created { get; set; }
+
         [JsonPropertyName("model")]
-        public string? Model { get; set; }
+        public required string Model { get; set; }
 
-        [JsonPropertyName("created_at")]
-        public DateTime CreatedAt { get; set; }
+        [JsonPropertyName("choices")]
+        public required List<Choice> Choices { get; set; }
 
-        [JsonPropertyName("message")]
-        public OllamaChatMessage? Message { get; set; }
+        [JsonPropertyName("usage")]
+        public required Usage Usage { get; set; }
 
-        [JsonPropertyName("done")]
-        public bool Done { get; set; }
-
-        [JsonPropertyName("total_duration")]
-        public long TotalDuration { get; set; }
-
-        [JsonPropertyName("load_duration")]
-        public long LoadDuration { get; set; }
-
-        [JsonPropertyName("prompt_eval_count")]
-        public int PromptEvalCount { get; set; }
-
-        [JsonPropertyName("prompt_eval_duration")]
-        public long PromptEvalDuration { get; set; }
-
-        [JsonPropertyName("eval_count")]
-        public int EvalCount { get; set; }
-
-        [JsonPropertyName("eval_duration")]
-        public long EvalDuration { get; set; }
+        [JsonPropertyName("service_tier")]
+        public string? ServiceTier { get; set; }
     }
 
-    private class OllamaChatMessage
+    public class Choice
+    {
+        [JsonPropertyName("index")]
+        public int Index { get; set; }
+
+        [JsonPropertyName("message")]
+        public required Message Message { get; set; }
+
+        [JsonPropertyName("logprobs")]
+        public object? Logprobs { get; set; }
+
+        [JsonPropertyName("finish_reason")]
+        public string FinishReason { get; set; }
+    }
+
+    public class Message
     {
         [JsonPropertyName("role")]
-        public string? Role { get; set; }
+        public string Role { get; set; }
 
         [JsonPropertyName("content")]
-        public string? Content { get; set; }
+        public string Content { get; set; }
+
+        [JsonPropertyName("refusal")]
+        public object Refusal { get; set; }
+
+        [JsonPropertyName("annotations")]
+        public List<object> Annotations { get; set; }
+    }
+
+    public class Usage
+    {
+        [JsonPropertyName("prompt_tokens")]
+        public int PromptTokens { get; set; }
+
+        [JsonPropertyName("completion_tokens")]
+        public int CompletionTokens { get; set; }
+
+        [JsonPropertyName("total_tokens")]
+        public int TotalTokens { get; set; }
+
+        [JsonPropertyName("prompt_tokens_details")]
+        public TokenDetails PromptTokensDetails { get; set; }
+
+        [JsonPropertyName("completion_tokens_details")]
+        public CompletionTokenDetails CompletionTokensDetails { get; set; }
+    }
+    public class TokenDetails
+    {
+        [JsonPropertyName("cached_tokens")]
+        public int CachedTokens { get; set; }
+
+        [JsonPropertyName("audio_tokens")]
+        public int AudioTokens { get; set; }
+    }
+
+    public class CompletionTokenDetails
+    {
+        [JsonPropertyName("reasoning_tokens")]
+        public int ReasoningTokens { get; set; }
+
+        [JsonPropertyName("audio_tokens")]
+        public int AudioTokens { get; set; }
+
+        [JsonPropertyName("accepted_prediction_tokens")]
+        public int AcceptedPredictionTokens { get; set; }
+
+        [JsonPropertyName("rejected_prediction_tokens")]
+        public int RejectedPredictionTokens { get; set; }
     }
 }
