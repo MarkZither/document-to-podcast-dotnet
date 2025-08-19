@@ -32,6 +32,18 @@ All documentation-related tasks are to be written in the `.github/docs` folder. 
 Any status update files should be kept separate in a subdirectory within the `.github/` directory.
 
 ## Notes
+## Code Style and Quality
+
+* Always use braces `{}` for all control flow blocks (`if`, `else`, `for`, `while`, etc.), even for single-line statements. Example:
+	```csharp
+	if (parentDir is null)
+	{
+			throw new DirectoryNotFoundException("Could not determine parent directory for ONNX model path.");
+	}
+	// Or, use guard clause methods or helper functions for validation.
+	```
+* Avoid inline null checks and throw statements. Use guard clauses or early returns for error handling.
+* Prefer clear, readable error handling patterns. All error handling should follow project conventions and be reviewed for clarity and maintainability.
 
 *   The project uses OpenAI-compatible APIs for text generation and text-to-speech conversion.
 *   The project structure is designed to follow SOLID principles and dependency injection.
