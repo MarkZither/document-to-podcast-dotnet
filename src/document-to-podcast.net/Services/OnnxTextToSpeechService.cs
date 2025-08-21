@@ -108,7 +108,33 @@ public class OnnxTextToSpeechService : ITextToSpeechService, IDisposable
         {
             var voiceEmbedding = GetVoiceEmbedding(voiceProfile);
             var voiceTensor = new DenseTensor<float>(voiceEmbedding, new[] { 1, voiceEmbedding.Length });
-            inputs.Add(NamedOnnxValue.CreateFromTensor("speaker_embedding", voiceTensor));
+
+            // Inspect input metadata
+            foreach (var input in _session.InputMetadata)
+            {
+                Console.WriteLine($"Input Name: {input.Key}, Type: {input.Value.ElementType}, Dimensions: {string.Join(", ", input.Value.Dimensions)}");
+            }
+
+            if (_session.InputMetadata.ContainsKey("style"))
+            {
+                var styleTensor = new DenseTensor<float>(
+                    Enumerable.Repeat(0.5f, 256).ToArray(), // or whatever values you want
+                    new[] { 1, 256 });
+                inputs.Add(NamedOnnxValue.CreateFromTensor("style", styleTensor));
+            }
+
+            if (_session.InputMetadata.ContainsKey("speed"))
+            {
+                var speedTensor = new DenseTensor<float>(new float[] { 1.0f }, new[] { 1 });
+                inputs.Add(NamedOnnxValue.CreateFromTensor("speed", speedTensor));
+            }
+
+            
+
+            if (_session.InputMetadata.ContainsKey("speaker_embedding"))
+            {
+                inputs.Add(NamedOnnxValue.CreateFromTensor("speaker_embedding", voiceTensor));
+            }
         }
 
         // Run inference

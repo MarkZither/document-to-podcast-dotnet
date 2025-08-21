@@ -67,9 +67,14 @@ public class OnnxModelDownloader
     private async Task DownloadOuteTtsModel(string targetPath)
     {
         // OuteTTS-0.2-500M ONNX model from Hugging Face
-        const string modelUrl = "https://huggingface.co/onnx-community/OuteTTS-0.2-500M/resolve/main/onnx/model.onnx";
-        const string tokenizerUrl = "https://huggingface.co/onnx-community/OuteTTS-0.2-500M/resolve/main/tokenizer.json";
-        const string configUrl = "https://huggingface.co/onnx-community/OuteTTS-0.2-500M/resolve/main/config.json";
+        //const string modelUrl = "https://huggingface.co/onnx-community/OuteTTS-0.2-500M/resolve/main/onnx/model.onnx";
+        //const string tokenizerUrl = "https://huggingface.co/onnx-community/OuteTTS-0.2-500M/resolve/main/tokenizer.json";
+        //const string configUrl = "https://huggingface.co/onnx-community/OuteTTS-0.2-500M/resolve/main/config.json";
+
+        // Kokoro-82M-v1.0 ONNX model from Hugging Face
+        const string modelUrl = "https://huggingface.co/onnx-community/Kokoro-82M-v1.0-ONNX/resolve/main/onnx/model.onnx";
+        const string tokenizerUrl = "https://huggingface.co/onnx-community/Kokoro-82M-v1.0-ONNX/blob/main/tokenizer.json";
+        const string configUrl = "https://huggingface.co/onnx-community/Kokoro-82M-v1.0-ONNX/resolve/main/config.json";
 
         var modelDirectory = Path.GetDirectoryName(targetPath);
         if (string.IsNullOrEmpty(modelDirectory))
