@@ -1,51 +1,62 @@
+
 # Copilot Instructions for Document-to-Podcast .NET
 
-## Project Overview
+## Architecture & Major Components
 
-The document-to-podcast .NET project is a reimplementation of the Python document-to-podcast project using OpenAI-compatible APIs. The project uses a modular architecture with dependency injection and SOLID principles.
+- **Modular, Service-Oriented**: Core logic is in `src/document-to-podcast.net/Services/`.
+	- `PodcastGeneratorService`: Orchestrates document parsing, text generation (LLM), and text-to-speech.
+	- `OnnxTextToSpeechService`: Converts text to speech using ONNX models (see also `MockTextToSpeechService` for testing).
+	- `OpenAIApiTextToTextService`: Integrates with OpenAI-compatible APIs (Ollama, LM Studio, etc.) for LLM text generation.
+	- `DocumentParserFactory`: Selects appropriate parser (MarkItDown, TextParser) based on file extension.
+	- Interfaces in `Services/Interfaces.cs` define boundaries for extensibility and testing.
 
-## Features
+- **Configuration**: Centralized in `Configuration/` (see `PodcastConfig.cs`, `PodcastGeneratorOptions.cs`). Supports layered config via `appsettings.json`, environment variables, and CLI args.
 
-*   Flexible Document Parsing: Uses a factory pattern to support multiple document parsers (MarkItDown integration, basic text file parsing)
-*   OpenAI-Compatible API Integration: Works with Ollama, LM Studio, OpenAI API
-*   Audio Generation: Full text-to-speech pipeline (OpenAI-compatible TTS API integration, Mock TTS service for testing and development)
+- **Testing**: Unit and integration tests in `tests/document-to-podcast.net.tests/`.
+	- Use Moq for mocking dependencies.
+	- Use Verify (Simon Cropp) for snapshot testing of audio output.
+	- Integration tests generate actual WAV files for manual inspection.
 
-## Development
+## Developer Workflows
 
-The project structure is divided into the following folders:
+- **Build**: Run `dotnet build` in the solution or project directory.
+- **Test**: Run `dotnet test` in the `tests/document-to-podcast.net.tests/` directory.
+- **Run**: Use `dotnet run -- --input-file ...` or `--config-file ...` (see README for CLI details).
+- **Debugging**: Inspect generated WAV files in `tests/.../GeneratedAudio/` after integration tests.
 
-*   `src/document-to-podcast.net/`: The main .NET project directory
-*   `Configuration/`: Configuration models and default settings
-*   `Services/`: Core business logic (interfaces, factory pattern, text generation services)
-*   `Parsers/`: Document parsing (MarkItDown integration, basic text file parsing)
+## Patterns & Conventions
+
+- **Dependency Injection**: All services are constructed via DI, with explicit constructor parameters for logging, config, and dependencies.
+- **Factory Pattern**: Document parsing uses a factory to select parser by file extension.
+- **Error Handling**: Always use braces for control flow. Use guard clauses for null checks and error conditions.
+- **Audio Output**: All TTS services must return valid WAV files (check RIFF/WAVE header in tests).
+- **Extensibility**: Add new document parsers or TTS/LLM services by implementing interfaces in `Services/Interfaces.cs` and registering in factories.
+
+## Integration Points
+
+- **LLM APIs**: OpenAI-compatible endpoints (Ollama, LM Studio, OpenAI API) for text generation.
+- **MarkItDown**: Python-based document parsing (can be run locally or replaced with .NET parser).
+- **NAudio**: Used for WAV file generation and manipulation.
+
+## Examples
+
+- To add a new document parser:
+	- Implement `IDocumentParser`.
+	- Register in `DocumentParserFactory`.
+- To add a new TTS service:
+	- Implement `ITextToSpeechService`.
+	- Register in DI and update orchestration in `PodcastGeneratorService`.
+
+## Code Style
+
+- Always use braces `{}` for all control flow blocks, even single-line.
+- Use guard clauses for error handling.
+- Prefer explicit, readable error handling and logging.
 
 ## Documentation
 
-All documentation-related tasks are to be written in the `.github/docs` folder. This includes:
+- All docs go in `.github/docs/`.
+- Status updates in `.github/status/`.
 
-*   README files
-*   Documentation summaries
-*   API documentation
-
-## Status Updates
-
-Any status update files should be kept separate in a subdirectory within the `.github/` directory.
-
-## Notes
-## Code Style and Quality
-
-* Always use braces `{}` for all control flow blocks (`if`, `else`, `for`, `while`, etc.), even for single-line statements. Example:
-	```csharp
-	if (parentDir is null)
-	{
-			throw new DirectoryNotFoundException("Could not determine parent directory for ONNX model path.");
-	}
-	// Or, use guard clause methods or helper functions for validation.
-	```
-* Avoid inline null checks and throw statements. Use guard clauses or early returns for error handling.
-* Prefer clear, readable error handling patterns. All error handling should follow project conventions and be reviewed for clarity and maintainability.
-
-*   The project uses OpenAI-compatible APIs for text generation and text-to-speech conversion.
-*   The project structure is designed to follow SOLID principles and dependency injection.
-
-Please ensure that any documentation or updates are written according to these instructions.
+---
+If any section is unclear or missing, please provide feedback for iterative improvement.
